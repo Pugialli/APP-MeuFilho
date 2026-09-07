@@ -115,6 +115,13 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 
 ## Changelog
 
+### v1.0.4 — Remoção do .env.example
+> Setembro 2026
+
+- `.env.example` removido — URL de produção é pública e já está documentada no README
+
+---
+
 ### v1.0.3 — API deployada na Vercel + olho nos campos de senha
 > Setembro 2026
 
