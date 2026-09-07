@@ -40,7 +40,7 @@ Aplicativo React Native para o MeuFilho, permitindo que dois responsáveis (pai,
 ## Requisitos
 
 - Node.js 20+
-- npm
+- pnpm
 - Expo Go instalado no dispositivo físico (iOS ou Android)
 
 ---
@@ -64,16 +64,16 @@ EXPO_PUBLIC_API_URL=http://192.168.X.X:4001
 
 ```bash
 # Instalar dependências
-npm install
+pnpm install
 
 # Rodar em desenvolvimento
-npm start
+pnpm start
 
 # Rodar direto no Android
-npm run android
+pnpm android
 
 # Rodar direto no iOS (requer macOS)
-npm run ios
+pnpm ios
 ```
 
 Após `npm start`, escaneie o QR Code exibido no terminal com o app **Expo Go** no celular.
@@ -117,6 +117,18 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 ---
 
 ## Changelog
+
+### v1.0.1 — Migração para pnpm
+> Setembro 2026
+
+- Migração do package manager de npm para **pnpm@10.30.2**
+- Adicionado campo `packageManager` no `package.json` (Corepack bloqueia `npm install` acidental)
+- Adicionado `pnpm.onlyBuiltDependencies` para aprovar builds nativos sem prompt interativo
+- `package-lock.json` removido e substituído por `pnpm-lock.yaml`
+- `.gitignore` atualizado com `package-lock.json`
+- README atualizado com comandos `pnpm`
+
+---
 
 ### v1.0.0 — Estrutura inicial do app
 > Setembro 2026

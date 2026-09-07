@@ -31,5 +31,15 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
-  "private": true
+  "private": true,
+  "packageManager": "pnpm@10.30.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "react-native-gesture-handler",
+      "react-native-screens",
+      "react-native-safe-area-context",
+      "@react-native-community/datetimepicker",
+      "expo-secure-store"
+    ]
+  }
 }
