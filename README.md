@@ -66,17 +66,19 @@ EXPO_PUBLIC_API_URL=http://192.168.X.X:4001
 # Instalar dependências
 pnpm install
 
-# Rodar em desenvolvimento
+# Rodar em desenvolvimento (tunnel)
 pnpm start
 
-# Rodar direto no Android
+# Rodar direto no Android (tunnel)
 pnpm android
 
-# Rodar direto no iOS (requer macOS)
+# Rodar direto no iOS (requer macOS, tunnel)
 pnpm ios
 ```
 
-Após `npm start`, escaneie o QR Code exibido no terminal com o app **Expo Go** no celular.
+Após `pnpm start`, escaneie o QR Code exibido no terminal com o app **Expo Go** no celular.
+
+> **Por que tunnel?** O roteador tem isolamento de clientes (AP Isolation) ativo, o que impede comunicação direta entre dispositivos na mesma rede. O modo tunnel roteia a conexão pelos servidores da Expo como alternativa.
 
 ---
 
@@ -117,6 +119,15 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 ---
 
 ## Changelog
+
+### v1.0.2 — Fix: tunnel para Expo Go
+> Setembro 2026
+
+- Adicionado `@expo/ngrok@4.1.0` como devDependency — necessário para o modo tunnel funcionar com pnpm (Expo busca o pacote no `node_modules` local, não no global)
+- Scripts `start`, `android` e `ios` atualizados com flag `--tunnel` — contorna o AP Isolation ativo no roteador
+- README atualizado com nota explicativa sobre o uso do tunnel
+
+---
 
 ### v1.0.1 — Migração para pnpm
 > Setembro 2026
