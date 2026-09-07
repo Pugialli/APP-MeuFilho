@@ -108,6 +108,13 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 
 ## Changelog
 
+### v1.0.8 — Fix: instalação do @expo/vector-icons
+> Setembro 2026
+
+- `@expo/vector-icons` adicionado explicitamente às dependências — necessário para os ícones de olho nos campos de senha
+
+---
+
 ### v1.0.7 — Remoção do @expo/ngrok
 > Setembro 2026
 
