@@ -60,20 +60,25 @@ EXPO_PUBLIC_API_URL=https://meu-filho-api.vercel.app
 ```bash
 # Instalar dependências
 pnpm install
-
-# Rodar em desenvolvimento (tunnel)
-pnpm start
-
-# Rodar direto no Android (tunnel)
-pnpm android
-
-# Rodar direto no iOS (requer macOS, tunnel)
-pnpm ios
 ```
 
-Após `pnpm start`, escaneie o QR Code exibido no terminal com o app **Expo Go** no celular.
+O roteador tem **AP Isolation** ativo, então é necessário usar ngrok para expor o Metro bundler. Abra dois terminais:
 
-> **Por que tunnel?** O roteador tem isolamento de clientes (AP Isolation) ativo, o que impede comunicação direta entre dispositivos na mesma rede. O modo tunnel roteia a conexão pelos servidores da Expo como alternativa.
+**Terminal 1 — Metro bundler:**
+```bash
+pnpm start
+```
+
+**Terminal 2 — Tunnel ngrok:**
+```bash
+ngrok http 8081
+```
+
+No **Expo Go**, toque em **"Enter URL manually"** e digite:
+```
+exp://<subdomínio>.ngrok-free.app
+```
+(substitua pelo subdomínio que aparecer no terminal do ngrok)
 
 ---
 
@@ -114,6 +119,16 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 ---
 
 ## Changelog
+
+### v1.0.5 — Fix: substituição do tunnel @expo/ngrok por ngrok v3 manual
+> Setembro 2026
+
+- `@expo/ngrok@4.1.0` descontinuado — usa binário ngrok v2 incompatível com os servidores atuais do ngrok
+- Scripts `start`, `android` e `ios` alterados de `--tunnel` para `--lan`
+- Workflow de desenvolvimento passa a usar ngrok v3 standalone em terminal separado (`ngrok http 8081`)
+- README atualizado com instruções dos dois terminais e entrada manual de URL no Expo Go
+
+---
 
 ### v1.0.4 — Remoção do .env.example
 > Setembro 2026
