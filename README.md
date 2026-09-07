@@ -62,23 +62,11 @@ EXPO_PUBLIC_API_URL=https://meu-filho-api.vercel.app
 pnpm install
 ```
 
-O roteador tem **AP Isolation** ativo, então é necessário usar ngrok para expor o Metro bundler. Abra dois terminais:
-
-**Terminal 1 — Metro bundler:**
 ```bash
 pnpm start
 ```
 
-**Terminal 2 — Tunnel ngrok:**
-```bash
-ngrok http 8081
-```
-
-No **Expo Go**, toque em **"Enter URL manually"** e digite:
-```
-exp://<subdomínio>.ngrok-free.app
-```
-(substitua pelo subdomínio que aparecer no terminal do ngrok)
+Após `pnpm start`, escaneie o QR Code exibido no terminal com o app **Expo Go** no celular. Certifique-se de que o celular e o computador estão na mesma rede Wi-Fi.
 
 ---
 
@@ -119,6 +107,14 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 ---
 
 ## Changelog
+
+### v1.0.6 — Fix: remoção de flags de conexão desnecessárias
+> Setembro 2026
+
+- Scripts `start`, `android` e `ios` voltaram para `expo start` puro — conexão LAN direta funciona sem flags adicionais
+- README simplificado: instrução de uso resume-se a `pnpm start` + QR code
+
+---
 
 ### v1.0.5 — Fix: substituição do tunnel @expo/ngrok por ngrok v3 manual
 > Setembro 2026
