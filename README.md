@@ -108,6 +108,13 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 
 ## Changelog
 
+### v1.0.7 — Remoção do @expo/ngrok
+> Setembro 2026
+
+- `@expo/ngrok` removido das devDependencies — não é mais necessário
+
+---
+
 ### v1.0.6 — Fix: remoção de flags de conexão desnecessárias
 > Setembro 2026
 
