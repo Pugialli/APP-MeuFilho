@@ -1,69 +1,135 @@
-# Meu Filho
+# MeuFilho App
 
-App React Native (Expo) para acompanhar peso, altura e batimentos cardíacos de um bebê durante a gestação.
+App mobile para acompanhamento de **gestação e desenvolvimento do bebê**, compartilhado entre dois responsáveis.
 
-## Pré-requisitos
+---
 
-- Node.js 18+
-- Expo CLI: `npm install -g expo-cli` (ou use `npx expo`)
-- Expo Go instalado no celular (iOS/Android)
+## Equipe
 
-## Configuração
+| Papel | Nome |
+|---|---|
+| Desenvolvimento | João Paulo Pugialli da Silva Souza |
 
-1. **Instalar dependências**
-   ```bash
-   npm install
-   ```
+---
 
-2. **Configurar URL da API**
+## Sobre o projeto
 
-   Edite o arquivo `.env` na raiz do projeto:
-   ```
-   EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:4000
-   ```
+Aplicativo React Native para o MeuFilho, permitindo que dois responsáveis (pai, mãe ou qualquer combinação) acompanhem juntos a gestação e o crescimento do bebê.
 
-   Para descobrir seu IP local:
-   - Windows: `ipconfig` → IPv4 Address
-   - Mac/Linux: `ifconfig` ou `ip addr`
+- **Autenticação** com JWT (access token + refresh token) — renovação automática via interceptor Axios
+- **Filhos compartilhados** via código de convite — o segundo responsável entra com o código e passa a ter acesso completo
+- **Medições independentes** — peso, altura e BPM são registros separados, cada um com data própria
 
-   > Use o IP da sua máquina na rede local (ex: `192.168.1.5`), não `localhost`.
-   > `localhost` só funciona no emulador Android via `10.0.2.2`.
+---
 
-## Rodando o app
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Expo 57 + React Native 0.86 (TypeScript) |
+| Navegação | React Navigation 7 (Stack + Bottom Tabs) |
+| Estado e cache | TanStack Query v5 |
+| Formulários | React Hook Form v7 + Zod v4 |
+| HTTP | Axios (interceptor de refresh token automático) |
+| Armazenamento seguro | expo-secure-store |
+| Seletor de data | @react-native-community/datetimepicker |
+| Runtime | Node.js 20+ |
+
+---
+
+## Requisitos
+
+- Node.js 20+
+- npm
+- Expo Go instalado no dispositivo físico (iOS ou Android)
+
+---
+
+## Variáveis de ambiente
+
+Crie um arquivo `.env` na raiz com a seguinte variável:
+
+```env
+# URL base da API (use o IP local da sua máquina para testar no dispositivo físico)
+EXPO_PUBLIC_API_URL=http://192.168.X.X:4001
+```
+
+> **Por que IP local e não localhost?** O dispositivo físico e o computador estão na mesma rede, mas `localhost` no celular aponta para o próprio celular. Use o IP da sua máquina na rede Wi-Fi (`ipconfig` no Windows, `ifconfig` no Mac/Linux).
+>
+> **Emulador Android:** use `http://10.0.2.2:4001` — esse é o alias que o emulador usa para acessar a máquina host.
+
+---
+
+## Instalação e uso
 
 ```bash
+# Instalar dependências
+npm install
+
+# Rodar em desenvolvimento
 npm start
+
+# Rodar direto no Android
+npm run android
+
+# Rodar direto no iOS (requer macOS)
+npm run ios
 ```
 
-Isso abre o Expo Dev Tools. Então:
+Após `npm start`, escaneie o QR Code exibido no terminal com o app **Expo Go** no celular.
 
-- **Dispositivo físico**: escaneie o QR Code com o app Expo Go
-- **Emulador Android**: pressione `a`
-- **Simulador iOS (macOS)**: pressione `i`
+---
 
-## Emulador Android — URL da API
+## Telas
 
-No emulador Android, `localhost` não aponta para a sua máquina. Use:
+| Tela | Descrição |
+|---|---|
+| Login | Autenticação com email e senha |
+| Cadastro | Criação de conta com nome, email, senha e papel (Pai / Mãe) |
+| Bebê (Home) | Exibe o perfil do bebê com código de convite; ou opções de criar / entrar com código |
+| Registrar | Formulário de medição — peso (g), altura (cm) e BPM com seletor de data |
+| Histórico | Lista de medições agrupadas por data, filtros por tipo e pull-to-refresh |
 
-```
-EXPO_PUBLIC_API_URL=http://10.0.2.2:4000
-```
+---
 
-## Estrutura do projeto
+## Estrutura de pastas
 
 ```
 src/
 ├── context/       # AuthContext — estado global de autenticação
+├── hooks/         # useChild, useMeasurements (wrappers de React Query)
+├── navigation/    # RootNavigator, AuthNavigator, AppNavigator, theme
 ├── screens/       # LoginScreen, SignupScreen, HomeScreen, RecordScreen, HistoryScreen
-├── hooks/         # useChild, useMeasurements (React Query)
 ├── services/      # api.ts — instância Axios com interceptor de refresh token
-├── types/         # Tipos TypeScript da API
-└── navigation/    # RootNavigator, AuthNavigator, AppNavigator, theme
+└── types/         # Tipos TypeScript da API (User, Child, Measurement…)
 ```
 
-## Fluxo de autenticação
+---
 
-- Tokens JWT salvos no `expo-secure-store`
-- Access token: 15 min · Refresh token: 7 dias
-- Ao receber 401, o interceptor tenta `/auth/refresh` automaticamente
-- Se o refresh falhar, o usuário é deslogado e redirecionado para o login
+## Versionamento
+
+Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATCH`
+
+- **MAJOR** — mudanças que quebram compatibilidade (breaking changes, grandes migrações)
+- **MINOR** — novas funcionalidades sem quebrar o que existe
+- **PATCH** — correções de bugs e ajustes menores
+
+---
+
+## Changelog
+
+### v1.0.0 — Estrutura inicial do app
+> Setembro 2026
+
+- Setup do projeto com Expo 57, React Native 0.86 e TypeScript
+- Autenticação completa: signup, login, logout e refresh token automático via interceptor Axios
+- Tokens JWT armazenados com segurança no `expo-secure-store`
+- Fluxo de filhos: criar perfil do bebê, gerar código de convite e entrar com código
+- Compartilhamento do código de convite via Share API do React Native
+- Registro de medições independentes (peso, altura, BPM) com seletor de data
+- Validação local com Zod antes de enviar para a API
+- Histórico de medições agrupado por data com filtros por tipo (abas)
+- Pull-to-refresh e exclusão de medições com confirmação
+- Design em tons pastéis verdes (verde sálvia e menta, fundo off-white)
+- Navegação com React Navigation 7: Stack para autenticação e Bottom Tabs para o app
+- Cache e invalidação automática com TanStack Query v5
