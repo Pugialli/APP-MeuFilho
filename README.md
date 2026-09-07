@@ -50,13 +50,8 @@ Aplicativo React Native para o MeuFilho, permitindo que dois responsáveis (pai,
 Crie um arquivo `.env` na raiz com a seguinte variável:
 
 ```env
-# URL base da API (use o IP local da sua máquina para testar no dispositivo físico)
-EXPO_PUBLIC_API_URL=http://192.168.X.X:4001
+EXPO_PUBLIC_API_URL=https://meu-filho-api.vercel.app
 ```
-
-> **Por que IP local e não localhost?** O dispositivo físico e o computador estão na mesma rede, mas `localhost` no celular aponta para o próprio celular. Use o IP da sua máquina na rede Wi-Fi (`ipconfig` no Windows, `ifconfig` no Mac/Linux).
->
-> **Emulador Android:** use `http://10.0.2.2:4001` — esse é o alias que o emulador usa para acessar a máquina host.
 
 ---
 
@@ -119,6 +114,15 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 ---
 
 ## Changelog
+
+### v1.0.3 — API deployada na Vercel + olho nos campos de senha
+> Setembro 2026
+
+- `EXPO_PUBLIC_API_URL` atualizado para `https://meu-filho-api.vercel.app` — API deixou de ser local
+- `.env.example` atualizado com a URL de produção
+- Adicionado toggle de visibilidade (ícone olho) nos campos de senha do Login e Cadastro
+
+---
 
 ### v1.0.2 — Fix: tunnel para Expo Go
 > Setembro 2026

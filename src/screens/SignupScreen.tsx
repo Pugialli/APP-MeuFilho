@@ -11,6 +11,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -33,6 +34,7 @@ export default function SignupScreen() {
   const { signup, signupError, isSignupPending, login } = useAuth()
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>()
   const [role, setRole] = useState<Role>('PAI')
+  const [showPassword, setShowPassword] = useState(false)
 
   const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -108,15 +110,28 @@ export default function SignupScreen() {
             render={({ field: { onChange, value, onBlur } }) => (
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>Senha</Text>
-                <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  value={value}
-                  placeholder="••••••••"
-                  placeholderTextColor={COLORS.muted}
-                  secureTextEntry
-                />
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={[styles.input, styles.inputWithIcon, errors.password && styles.inputError]}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    placeholder="••••••••"
+                    placeholderTextColor={COLORS.muted}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeBtn}
+                    onPress={() => setShowPassword((v) => !v)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color={COLORS.muted}
+                    />
+                  </TouchableOpacity>
+                </View>
                 {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
               </View>
             )}
@@ -185,6 +200,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 22, fontWeight: '600', color: COLORS.text, marginBottom: 20 },
   fieldGroup: { marginBottom: 16 },
   label: { fontSize: 13, fontWeight: '500', color: COLORS.textSecondary, marginBottom: 6 },
+  inputWrapper: { position: 'relative', justifyContent: 'center' },
   input: {
     height: 48,
     borderWidth: 1,
@@ -195,6 +211,8 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     backgroundColor: COLORS.background,
   },
+  inputWithIcon: { paddingRight: 46 },
+  eyeBtn: { position: 'absolute', right: 14 },
   inputError: { borderColor: COLORS.error },
   errorText: { fontSize: 12, color: COLORS.error, marginTop: 4 },
   roleRow: { flexDirection: 'row', gap: 12 },
