@@ -31,9 +31,11 @@ Aplicativo React Native para o MeuFilho, permitindo que dois responsáveis (pai,
 | Estado e cache | TanStack Query v5 |
 | Formulários | React Hook Form v7 + Zod v4 |
 | HTTP | Axios (interceptor de refresh token automático) |
-| Armazenamento seguro | expo-secure-store |
+| Armazenamento seguro | expo-secure-store (native) / localStorage (web) |
 | Ícones | lucide-react-native + react-native-svg |
 | Seletor de data | @react-native-community/datetimepicker |
+| Web | react-native-web + Expo Metro bundler |
+| Deploy web | Vercel (SPA, rewrites configurados) |
 | Runtime | Node.js 20+ |
 
 ---
@@ -77,7 +79,7 @@ Após `pnpm start`, escaneie o QR Code exibido no terminal com o app **Expo Go**
 |---|---|
 | Login | Autenticação com email e senha |
 | Cadastro | Criação de conta com nome, email, senha e papel (Pai / Mãe) |
-| Bebê (Home) | Exibe o perfil do bebê com código de convite; ou opções de criar / entrar com código |
+| Bebê (Home) | Lista todos os filhos; edição inline de nome, sexo e data prevista; adicionar novo bebê ou entrar com código |
 | Registrar | Formulário de medição — peso (g), altura (cm) e BPM com seletor de data |
 | Histórico | Lista de medições agrupadas por data, filtros por tipo e pull-to-refresh |
 
@@ -108,6 +110,32 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 ---
 
 ## Changelog
+
+### v1.2.0 — Múltiplos filhos, edição de perfil e suporte web
+> Setembro 2026
+
+**Múltiplos filhos**
+- Home exibe todos os filhos cadastrados em cards individuais
+- Botão "Adicionar outro bebê" para criar ou entrar com código sem sair da tela
+- `useChildren` já retornava lista; agora a UI renderiza todos os itens
+
+**Edição de perfil do bebê**
+- Botão de lápis em cada card abre edição inline (nome, sexo, data prevista)
+- Novo hook `useUpdateChild` — chama `PATCH /children/:id`
+- Cancelar restaura os valores originais sem chamar a API
+
+**Campo de sexo**
+- Tipo `Sex` adicionado (`MALE` / `FEMALE` / `UNKNOWN`)
+- Componente `SexSelector` — chips Menino / Menina / Não definido
+- Exibido como badge no card de visualização quando definido
+- Incluído no create e no update
+
+**Suporte web**
+- `react-native-web` adicionado; `app.json` configurado com `output: "single-page"`
+- Armazenamento multiplataforma: `expo-secure-store` no nativo, `localStorage` na web
+- `vercel.json` criado com rewrite SPA para deploy na Vercel
+
+---
 
 ### v1.1.0 — Redesign visual + melhorias de UX
 > Setembro 2026
