@@ -10,6 +10,7 @@ import {
   Share,
   Alert,
   Platform,
+  Modal,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { Baby, Leaf, User, Share2, Pencil, Check, X, Plus } from 'lucide-react-native'
@@ -53,6 +54,7 @@ function SexSelector({ value, onChange }: { value: Sex; onChange: (s: Sex) => vo
 
 function ChildCard({ child }: { child: Child }) {
   const [editing, setEditing] = useState(false)
+  const [showInvite, setShowInvite] = useState(false)
   const [editName, setEditName] = useState(child.name ?? '')
   const [editSex, setEditSex] = useState<Sex>(child.sex ?? 'UNKNOWN')
   const [editDueDate, setEditDueDate] = useState<Date | null>(
@@ -177,15 +179,6 @@ function ChildCard({ child }: { child: Child }) {
         <Text style={styles.childDue}>Previsão: {formatDate(child.dueDate)}</Text>
       )}
 
-      <View style={styles.inviteBox}>
-        <Text style={styles.inviteLabel}>Código de convite</Text>
-        <Text style={styles.inviteCode}>{child.inviteCode}</Text>
-        <TouchableOpacity style={styles.shareBtn} onPress={shareInvite}>
-          <Share2 size={14} color={COLORS.text} />
-          <Text style={styles.shareBtnText}>Compartilhar com parceiro(a)</Text>
-        </TouchableOpacity>
-      </View>
-
       {child.members.length > 0 && (
         <View style={styles.membersBox}>
           <Text style={styles.membersLabel}>Responsáveis</Text>
@@ -197,6 +190,32 @@ function ChildCard({ child }: { child: Child }) {
           ))}
         </View>
       )}
+
+      <TouchableOpacity style={styles.inviteBtn} onPress={() => setShowInvite(true)}>
+        <Share2 size={14} color={COLORS.primary} />
+        <Text style={styles.inviteBtnText}>Convidar parceiro(a)</Text>
+      </TouchableOpacity>
+
+      <Modal visible={showInvite} transparent animationType="fade" onRequestClose={() => setShowInvite(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowInvite(false)}>
+          <TouchableOpacity style={styles.modalCard} activeOpacity={1}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Código de convite</Text>
+              <TouchableOpacity onPress={() => setShowInvite(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <X size={20} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSub}>Compartilhe este código com o(a) parceiro(a) para que ele(a) acesse o perfil do bebê.</Text>
+            <View style={styles.codeBox}>
+              <Text style={styles.codeText}>{child.inviteCode}</Text>
+            </View>
+            <TouchableOpacity style={styles.shareBtn} onPress={shareInvite}>
+              <Share2 size={16} color="#fff" />
+              <Text style={styles.shareBtnText}>Compartilhar</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
@@ -593,27 +612,63 @@ const styles = StyleSheet.create({
   },
   sexBadgeText: { fontSize: 12, fontWeight: '600', color: COLORS.text },
   childDue: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4 },
-  inviteBox: {
-    width: '100%',
-    backgroundColor: COLORS.background,
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  inviteLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 6 },
-  inviteCode: { fontSize: 28, fontWeight: '800', color: COLORS.primary, letterSpacing: 4 },
-  shareBtn: {
-    marginTop: 12,
+  inviteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: COLORS.primaryLight,
+    marginTop: 16,
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
-  shareBtnText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
+  inviteBtnText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
+  modalSub: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18, marginBottom: 20 },
+  codeBox: {
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  codeText: { fontSize: 32, fontWeight: '800', color: COLORS.primary, letterSpacing: 6 },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  shareBtnText: { fontSize: 15, color: '#fff', fontWeight: '600' },
   membersBox: { width: '100%', marginTop: 16 },
   membersLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 8 },
   memberItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
