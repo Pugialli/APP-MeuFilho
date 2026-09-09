@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import { Platform } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000'
@@ -14,28 +15,44 @@ const STORE_KEYS = {
   USER: 'user',
 }
 
+// Abstração de armazenamento: SecureStore no nativo, localStorage na web
+const kv = {
+  async get(key: string): Promise<string | null> {
+    if (Platform.OS === 'web') return localStorage.getItem(key)
+    return SecureStore.getItemAsync(key)
+  },
+  async set(key: string, value: string): Promise<void> {
+    if (Platform.OS === 'web') { localStorage.setItem(key, value); return }
+    await SecureStore.setItemAsync(key, value)
+  },
+  async del(key: string): Promise<void> {
+    if (Platform.OS === 'web') { localStorage.removeItem(key); return }
+    await SecureStore.deleteItemAsync(key)
+  },
+}
+
 export const storage = {
   async saveTokens(accessToken: string, refreshToken: string) {
-    await SecureStore.setItemAsync(STORE_KEYS.ACCESS_TOKEN, accessToken)
-    await SecureStore.setItemAsync(STORE_KEYS.REFRESH_TOKEN, refreshToken)
+    await kv.set(STORE_KEYS.ACCESS_TOKEN, accessToken)
+    await kv.set(STORE_KEYS.REFRESH_TOKEN, refreshToken)
   },
   async getAccessToken() {
-    return SecureStore.getItemAsync(STORE_KEYS.ACCESS_TOKEN)
+    return kv.get(STORE_KEYS.ACCESS_TOKEN)
   },
   async getRefreshToken() {
-    return SecureStore.getItemAsync(STORE_KEYS.REFRESH_TOKEN)
+    return kv.get(STORE_KEYS.REFRESH_TOKEN)
   },
   async saveUser(user: object) {
-    await SecureStore.setItemAsync(STORE_KEYS.USER, JSON.stringify(user))
+    await kv.set(STORE_KEYS.USER, JSON.stringify(user))
   },
   async getUser() {
-    const raw = await SecureStore.getItemAsync(STORE_KEYS.USER)
+    const raw = await kv.get(STORE_KEYS.USER)
     return raw ? JSON.parse(raw) : null
   },
   async clear() {
-    await SecureStore.deleteItemAsync(STORE_KEYS.ACCESS_TOKEN)
-    await SecureStore.deleteItemAsync(STORE_KEYS.REFRESH_TOKEN)
-    await SecureStore.deleteItemAsync(STORE_KEYS.USER)
+    await kv.del(STORE_KEYS.ACCESS_TOKEN)
+    await kv.del(STORE_KEYS.REFRESH_TOKEN)
+    await kv.del(STORE_KEYS.USER)
   },
 }
 
