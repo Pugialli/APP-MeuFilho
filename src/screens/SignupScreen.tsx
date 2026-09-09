@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { Leaf, User } from 'lucide-react-native'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -55,7 +56,9 @@ export default function SignupScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.logo}>🌿</Text>
+          <View style={styles.logoContainer}>
+            <Leaf size={36} color={COLORS.primary} />
+          </View>
           <Text style={styles.title}>Meu Filho</Text>
         </View>
 
@@ -146,8 +149,9 @@ export default function SignupScreen() {
                   style={[styles.roleBtn, role === r && styles.roleBtnActive]}
                   onPress={() => setRole(r)}
                 >
+                  <User size={15} color={role === r ? COLORS.text : COLORS.textSecondary} />
                   <Text style={[styles.roleBtnText, role === r && styles.roleBtnTextActive]}>
-                    {r === 'PAI' ? '👨 Pai' : '👩 Mãe'}
+                    {r === 'PAI' ? 'Pai' : 'Mãe'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -185,7 +189,15 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
   container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   header: { alignItems: 'center', marginBottom: 28 },
-  logo: { fontSize: 48 },
+  logoContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   title: { fontSize: 28, fontWeight: 'bold', color: COLORS.primary, marginTop: 6 },
   card: {
     backgroundColor: COLORS.surface,
@@ -219,6 +231,8 @@ const styles = StyleSheet.create({
   roleBtn: {
     flex: 1,
     height: 48,
+    flexDirection: 'row',
+    gap: 6,
     borderWidth: 1.5,
     borderColor: COLORS.border,
     borderRadius: 12,

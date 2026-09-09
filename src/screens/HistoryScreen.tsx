@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native'
+import { Scale, Ruler, Heart, Trash2, ClipboardList } from 'lucide-react-native'
 import { useChildren } from '../hooks/useChild'
 import { useMeasurements, useDeleteMeasurement } from '../hooks/useMeasurements'
 import { COLORS } from '../navigation/theme'
@@ -21,10 +22,12 @@ const TABS: { label: string; value: MeasurementType | undefined }[] = [
   { label: 'BPM', value: 'BPM' },
 ]
 
-const ICONS: Record<MeasurementType, string> = {
-  WEIGHT: '⚖️',
-  HEIGHT: '📏',
-  BPM: '❤️',
+type LucideIcon = React.ComponentType<{ size?: number; color?: string }>
+
+const ICONS: Record<MeasurementType, LucideIcon> = {
+  WEIGHT: Scale,
+  HEIGHT: Ruler,
+  BPM: Heart,
 }
 
 const TYPE_LABELS: Record<MeasurementType, string> = {
@@ -40,6 +43,8 @@ function MeasurementItem({
   item: Measurement
   onDelete: (id: string) => void
 }) {
+  const Icon = ICONS[item.type]
+
   const handleDelete = () => {
     Alert.alert('Excluir medição', 'Deseja excluir esta medição?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -50,10 +55,12 @@ function MeasurementItem({
   return (
     <View style={styles.measureItem}>
       <View style={styles.measureLeft}>
-        <Text style={styles.measureIcon}>{ICONS[item.type]}</Text>
+        <View style={styles.iconContainer}>
+          <Icon size={20} color={COLORS.primary} />
+        </View>
         <View style={styles.measureInfo}>
           <Text style={styles.measureType}>{TYPE_LABELS[item.type]}</Text>
-          <Text style={styles.measureBy}>por {item.recordedBy.name}</Text>
+          <Text style={styles.measureBy} numberOfLines={1} ellipsizeMode="tail">por {item.recordedBy.name}</Text>
         </View>
       </View>
       <View style={styles.measureRight}>
@@ -61,7 +68,7 @@ function MeasurementItem({
           {item.value} <Text style={styles.measureUnit}>{item.unit}</Text>
         </Text>
         <TouchableOpacity onPress={handleDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.deleteIcon}>🗑️</Text>
+          <Trash2 size={18} color={COLORS.error} />
         </TouchableOpacity>
       </View>
     </View>
@@ -79,7 +86,8 @@ function groupByDate(measurements: Measurement[]): { date: string; items: Measur
 }
 
 function formatGroupDate(dateStr: string) {
-  const [year, month, day] = dateStr.split('-').map(Number)
+  const datePart = dateStr.split('T')[0]
+  const [year, month, day] = datePart.split('-').map(Number)
   const d = new Date(year, month - 1, day)
   return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
 }
@@ -145,7 +153,7 @@ export default function HistoryScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>📋</Text>
+            <ClipboardList size={48} color={COLORS.muted} />
             <Text style={styles.emptyText}>Nenhuma medição encontrada</Text>
           </View>
         }
@@ -207,17 +215,22 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  measureLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  measureIcon: { fontSize: 24 },
-  measureInfo: {},
+  measureLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  measureInfo: { flex: 1 },
   measureType: { fontSize: 15, fontWeight: '600', color: COLORS.text },
   measureBy: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
   measureRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   measureValue: { fontSize: 18, fontWeight: '700', color: COLORS.primary },
   measureUnit: { fontSize: 12, fontWeight: '400', color: COLORS.textSecondary },
-  deleteIcon: { fontSize: 18 },
-  emptyState: { alignItems: 'center', paddingTop: 60 },
-  emptyEmoji: { fontSize: 48 },
-  emptyText: { fontSize: 15, color: COLORS.textSecondary, marginTop: 12 },
+  emptyState: { alignItems: 'center', paddingTop: 60, gap: 12 },
+  emptyText: { fontSize: 15, color: COLORS.textSecondary },
   noChildText: { fontSize: 15, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 22 },
 })

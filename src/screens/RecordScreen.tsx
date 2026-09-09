@@ -9,44 +9,30 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Keyboard,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Scale, Ruler, Heart, Calendar } from 'lucide-react-native'
 import { useChildren } from '../hooks/useChild'
 import { useAddMeasurement } from '../hooks/useMeasurements'
 import { COLORS } from '../navigation/theme'
+import type { MeasurementType } from '../types'
 
-const positiveNum = z
-  .string()
-  .min(1, 'Campo obrigatório')
-  .refine((v) => !isNaN(Number(v)) && Number(v) > 0, 'Deve ser um número positivo')
+const TYPES = [
+  { type: 'WEIGHT' as MeasurementType, label: 'Peso', unit: 'g', placeholder: 'Ex: 3500', Icon: Scale },
+  { type: 'HEIGHT' as MeasurementType, label: 'Altura', unit: 'cm', placeholder: 'Ex: 50', Icon: Ruler },
+  { type: 'BPM' as MeasurementType, label: 'BPM', unit: 'bpm', placeholder: 'Ex: 140', Icon: Heart },
+]
 
-const schema = z
-  .object({
-    weight: z.string().optional(),
-    height: z.string().optional(),
-    bpm: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    const filled = [data.weight, data.height, data.bpm].filter((v) => v && v.trim() !== '')
-    if (filled.length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Preencha ao menos um campo', path: ['weight'] })
-    }
-    if (data.weight && data.weight.trim()) {
-      const n = Number(data.weight)
-      if (isNaN(n) || n <= 0) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Deve ser positivo', path: ['weight'] })
-    }
-    if (data.height && data.height.trim()) {
-      const n = Number(data.height)
-      if (isNaN(n) || n <= 0) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Deve ser positivo', path: ['height'] })
-    }
-    if (data.bpm && data.bpm.trim()) {
-      const n = Number(data.bpm)
-      if (isNaN(n) || n <= 0) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Deve ser positivo', path: ['bpm'] })
-    }
-  })
+const schema = z.object({
+  value: z
+    .string()
+    .min(1, 'Campo obrigatório')
+    .refine((v) => !isNaN(Number(v)) && Number(v) > 0, 'Deve ser um número positivo'),
+})
 
 type FormData = z.infer<typeof schema>
 
@@ -55,15 +41,15 @@ export default function RecordScreen() {
   const child = children?.[0]
   const addMeasurement = useAddMeasurement(child?.id ?? '')
 
+  const [selectedType, setSelectedType] = useState<MeasurementType>('WEIGHT')
   const [date, setDate] = useState(new Date())
   const [showPicker, setShowPicker] = useState(false)
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+
+  const activeType = TYPES.find((t) => t.type === selectedType)!
 
   const formatLocalDate = (d: Date) => {
     const year = d.getFullYear()
@@ -74,22 +60,14 @@ export default function RecordScreen() {
 
   const onSubmit = async (values: FormData) => {
     if (!child) return
-    const dateStr = formatLocalDate(date)
-    const tasks: Promise<any>[] = []
-
-    if (values.weight?.trim()) {
-      tasks.push(addMeasurement.mutateAsync({ type: 'WEIGHT', value: Number(values.weight), date: dateStr, unit: 'g' }))
-    }
-    if (values.height?.trim()) {
-      tasks.push(addMeasurement.mutateAsync({ type: 'HEIGHT', value: Number(values.height), date: dateStr, unit: 'cm' }))
-    }
-    if (values.bpm?.trim()) {
-      tasks.push(addMeasurement.mutateAsync({ type: 'BPM', value: Number(values.bpm), date: dateStr, unit: 'bpm' }))
-    }
-
     try {
-      await Promise.all(tasks)
-      Alert.alert('Sucesso', 'Medições registradas!')
+      await addMeasurement.mutateAsync({
+        type: selectedType,
+        value: Number(values.value),
+        date: formatLocalDate(date),
+        unit: activeType.unit,
+      })
+      Alert.alert('Sucesso', `${activeType.label} registrado!`)
       reset()
     } catch (err: any) {
       Alert.alert('Erro', err?.response?.data?.message ?? 'Não foi possível salvar')
@@ -113,90 +91,100 @@ export default function RecordScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.sectionTitle}>Nova medição</Text>
-      <Text style={styles.sectionSub}>Preencha os campos disponíveis. Cada campo é registrado individualmente.</Text>
+      <Text style={styles.sectionSub}>Selecione o tipo e informe o valor.</Text>
 
-      <View style={styles.fieldsRow}>
-        <View style={styles.fieldCol}>
-          <Text style={styles.fieldLabel}>⚖️  Peso (g)</Text>
-          <Controller
-            control={control}
-            name="weight"
-            render={({ field: { onChange, value, onBlur } }) => (
-              <TextInput
-                style={[styles.measureInput, errors.weight && styles.inputError]}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Ex: 500"
-                placeholderTextColor={COLORS.muted}
-                keyboardType="numeric"
-              />
-            )}
-          />
-          {errors.weight && <Text style={styles.errorText}>{errors.weight.message}</Text>}
-        </View>
+      {/* Type selector */}
+      <View style={styles.typeRow}>
+        {TYPES.map(({ type, label, Icon }) => {
+          const active = selectedType === type
+          return (
+            <TouchableOpacity
+              key={type}
+              style={[styles.typeChip, active && styles.typeChipActive]}
+              onPress={() => {
+                setSelectedType(type)
+                reset()
+              }}
+            >
+              <Icon size={16} color={active ? '#fff' : COLORS.textSecondary} />
+              <Text style={[styles.typeChipText, active && styles.typeChipTextActive]}>{label}</Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
 
-        <View style={styles.fieldCol}>
-          <Text style={styles.fieldLabel}>📏 Altura (cm)</Text>
-          <Controller
-            control={control}
-            name="height"
-            render={({ field: { onChange, value, onBlur } }) => (
-              <TextInput
-                style={[styles.measureInput, errors.height && styles.inputError]}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Ex: 30"
-                placeholderTextColor={COLORS.muted}
-                keyboardType="numeric"
-              />
-            )}
-          />
-          {errors.height && <Text style={styles.errorText}>{errors.height.message}</Text>}
-        </View>
+      {/* Value input */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>
+          {activeType.label} ({activeType.unit})
+        </Text>
+        <Controller
+          control={control}
+          name="value"
+          render={({ field: { onChange, value, onBlur } }) => (
+            <TextInput
+              style={[styles.input, errors.value && styles.inputError]}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              value={value}
+              placeholder={activeType.placeholder}
+              placeholderTextColor={COLORS.muted}
+              keyboardType="numeric"
+              returnKeyType="done"
+              onSubmitEditing={Keyboard.dismiss}
+              blurOnSubmit
+            />
+          )}
+        />
+        {errors.value && <Text style={styles.errorText}>{errors.value.message}</Text>}
+      </View>
 
-        <View style={styles.fieldCol}>
-          <Text style={styles.fieldLabel}>❤️  BPM</Text>
-          <Controller
-            control={control}
-            name="bpm"
-            render={({ field: { onChange, value, onBlur } }) => (
-              <TextInput
-                style={[styles.measureInput, errors.bpm && styles.inputError]}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                placeholder="Ex: 140"
-                placeholderTextColor={COLORS.muted}
-                keyboardType="numeric"
-              />
-            )}
-          />
-          {errors.bpm && <Text style={styles.errorText}>{errors.bpm.message}</Text>}
-        </View>
-
-        <View style={styles.fieldCol}>
-          <Text style={styles.fieldLabel}>📅 Data</Text>
-          <TouchableOpacity style={styles.measureInput} onPress={() => setShowPicker(true)}>
-            <Text style={styles.dateText}>{date.toLocaleDateString('pt-BR')}</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Date field */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>Data</Text>
+        <TouchableOpacity
+          style={styles.dateField}
+          onPress={() => {
+            Keyboard.dismiss()
+            setShowPicker((v) => !v)
+          }}
+        >
+          <Text style={styles.dateText}>
+            {date.toLocaleDateString('pt-BR', {
+              weekday: 'long',
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </Text>
+          <Calendar size={18} color={COLORS.muted} />
+        </TouchableOpacity>
       </View>
 
       {showPicker && (
         <DateTimePicker
           value={date}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display={Platform.OS === 'ios' ? 'inline' : 'default'}
           maximumDate={new Date()}
-          onChange={(_, selected) => {
-            setShowPicker(Platform.OS === 'ios')
-            if (selected) setDate(selected)
+          onValueChange={(_, selected) => {
+            if (Platform.OS !== 'ios') setShowPicker(false)
+            setDate(selected)
           }}
+          onDismiss={() => setShowPicker(false)}
+          style={styles.datePicker}
         />
+      )}
+      {showPicker && Platform.OS === 'ios' && (
+        <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowPicker(false)}>
+          <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
+        </TouchableOpacity>
       )}
 
       <TouchableOpacity
@@ -207,45 +195,85 @@ export default function RecordScreen() {
         {addMeasurement.isPending ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Salvar medições</Text>
+          <Text style={styles.buttonText}>Salvar medição</Text>
         )}
       </TouchableOpacity>
     </ScrollView>
   )
 }
 
-const FIELD_HEIGHT = 48
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.background },
   content: { padding: 20, paddingBottom: 40 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: COLORS.background },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
-  sectionSub: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 24, lineHeight: 18 },
-  fieldsRow: { gap: 16 },
-  fieldCol: { marginBottom: 4 },
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
-  measureInput: {
-    height: FIELD_HEIGHT,
+  sectionSub: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 20, lineHeight: 18 },
+  typeRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
+  typeChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
+  typeChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  typeChipText: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
+  typeChipTextActive: { color: '#fff' },
+  fieldGroup: { marginBottom: 16 },
+  fieldLabel: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 8 },
+  input: {
+    height: 52,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
     paddingHorizontal: 14,
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
     color: COLORS.text,
     backgroundColor: COLORS.surface,
-    justifyContent: 'center',
   },
   inputError: { borderColor: COLORS.error },
   errorText: { fontSize: 12, color: COLORS.error, marginTop: 4 },
-  dateText: { fontSize: 16, color: COLORS.text, lineHeight: FIELD_HEIGHT - 2 },
+  dateField: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.surface,
+  },
+  dateText: { fontSize: 14, color: COLORS.text, flex: 1, textTransform: 'capitalize' },
+  datePicker: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  confirmDateBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  confirmDateBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
   button: {
     height: 52,
     backgroundColor: COLORS.primary,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: 8,
   },
   buttonDisabled: { opacity: 0.7 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },

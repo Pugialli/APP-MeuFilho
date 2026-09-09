@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { Leaf } from 'lucide-react-native'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -46,7 +47,9 @@ export default function LoginScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.logo}>🌿</Text>
+          <View style={styles.logoContainer}>
+            <Leaf size={40} color={COLORS.primary} />
+          </View>
           <Text style={styles.title}>Meu Filho</Text>
           <Text style={styles.subtitle}>Acompanhe cada momento da gestação</Text>
         </View>
@@ -70,6 +73,8 @@ export default function LoginScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  textContentType="emailAddress"
+                  autoComplete="email"
                 />
                 {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
               </View>
@@ -87,10 +92,11 @@ export default function LoginScreen() {
                     style={[styles.input, styles.inputWithIcon, errors.password && styles.inputError]}
                     onChangeText={onChange}
                     onBlur={onBlur}
-                    value={value}
                     placeholder="••••••••"
                     placeholderTextColor={COLORS.muted}
                     secureTextEntry={!showPassword}
+                    textContentType="password"
+                    autoComplete="current-password"
                   />
                   <TouchableOpacity
                     style={styles.eyeBtn}
@@ -140,7 +146,15 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
   container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   header: { alignItems: 'center', marginBottom: 32 },
-  logo: { fontSize: 56 },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   title: { fontSize: 32, fontWeight: 'bold', color: COLORS.primary, marginTop: 8 },
   subtitle: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4, textAlign: 'center' },
   card: {

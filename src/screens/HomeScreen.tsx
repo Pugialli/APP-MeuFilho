@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { Baby, Leaf, User, Share2 } from 'lucide-react-native'
 import { useChildren, useCreateChild, useJoinChild } from '../hooks/useChild'
 import { useAuth } from '../context/AuthContext'
 import { COLORS } from '../navigation/theme'
@@ -26,13 +27,15 @@ function formatDate(iso: string | null) {
 function ChildCard({ child }: { child: Child }) {
   const shareInvite = async () => {
     await Share.share({
-      message: `Use o código ${child.inviteCode} no app Meu Filho para acompanhar nosso bebê! 🌿`,
+      message: `Use o código ${child.inviteCode} no app Meu Filho para acompanhar nosso bebê!`,
     })
   }
 
   return (
     <View style={styles.childCard}>
-      <Text style={styles.childEmoji}>👶</Text>
+      <View style={styles.childIconContainer}>
+        <Baby size={40} color={COLORS.primary} />
+      </View>
       <Text style={styles.childName}>{child.name ?? 'Nosso bebê'}</Text>
       {child.dueDate && (
         <Text style={styles.childDue}>Previsão: {formatDate(child.dueDate)}</Text>
@@ -42,6 +45,7 @@ function ChildCard({ child }: { child: Child }) {
         <Text style={styles.inviteLabel}>Código de convite</Text>
         <Text style={styles.inviteCode}>{child.inviteCode}</Text>
         <TouchableOpacity style={styles.shareBtn} onPress={shareInvite}>
+          <Share2 size={14} color={COLORS.text} />
           <Text style={styles.shareBtnText}>Compartilhar com parceiro(a)</Text>
         </TouchableOpacity>
       </View>
@@ -50,9 +54,10 @@ function ChildCard({ child }: { child: Child }) {
         <View style={styles.membersBox}>
           <Text style={styles.membersLabel}>Responsáveis</Text>
           {child.members.map((m) => (
-            <Text key={m.id} style={styles.memberItem}>
-              {m.role === 'PAI' ? '👨' : '👩'} {m.name}
-            </Text>
+            <View key={m.id} style={styles.memberItem}>
+              <User size={14} color={COLORS.textSecondary} />
+              <Text style={styles.memberItemText}>{m.name}</Text>
+            </View>
           ))}
         </View>
       )}
@@ -74,7 +79,7 @@ function EmptyState() {
     try {
       await createMutation.mutateAsync({
         name: name.trim() || undefined,
-        dueDate: dueDate ? dueDate.toISOString().split('T')[0] : undefined,
+        dueDate: dueDate ? dueDate.toISOString() : undefined,
       })
     } catch (err: any) {
       Alert.alert('Erro', err?.response?.data?.message ?? 'Não foi possível criar')
@@ -97,7 +102,9 @@ function EmptyState() {
   if (mode === 'choose') {
     return (
       <View style={styles.emptyState}>
-        <Text style={styles.emptyEmoji}>🌿</Text>
+        <View style={styles.emptyIconContainer}>
+          <Leaf size={48} color={COLORS.primary} />
+        </View>
         <Text style={styles.emptyTitle}>Bem-vindo ao Meu Filho</Text>
         <Text style={styles.emptySubtitle}>Crie um perfil para o bebê ou entre com um código de convite</Text>
         <TouchableOpacity style={styles.button} onPress={() => setMode('create')}>
@@ -155,7 +162,7 @@ function EmptyState() {
       />
 
       <Text style={styles.fieldLabel}>Data prevista de nascimento (opcional)</Text>
-      <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker(true)}>
+      <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker((v) => !v)}>
         <Text style={[styles.dateInputText, !dueDate && { color: COLORS.muted }]}>
           {dueDate ? dueDate.toLocaleDateString('pt-BR') : 'Selecionar data'}
         </Text>
@@ -165,12 +172,18 @@ function EmptyState() {
         <DateTimePicker
           value={dueDate ?? new Date()}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(_, date) => {
-            setShowPicker(Platform.OS === 'ios')
-            if (date) setDueDate(date)
+          display={Platform.OS === 'ios' ? 'inline' : 'default'}
+          onValueChange={(_, date) => {
+            if (Platform.OS !== 'ios') setShowPicker(false)
+            setDueDate(date)
           }}
+          onDismiss={() => setShowPicker(false)}
         />
+      )}
+      {showPicker && Platform.OS === 'ios' && (
+        <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowPicker(false)}>
+          <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
+        </TouchableOpacity>
       )}
 
       <TouchableOpacity
@@ -219,7 +232,7 @@ export default function HomeScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
       <View style={styles.topBar}>
-        <Text style={styles.greeting}>Olá, {user?.name?.split(' ')[0]} 👋</Text>
+        <Text style={styles.greeting}>Olá, {user?.name?.split(' ')[0]}</Text>
         <TouchableOpacity onPress={logout}>
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
@@ -248,7 +261,14 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
-  childEmoji: { fontSize: 56 },
+  childIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   childName: { fontSize: 24, fontWeight: '700', color: COLORS.text, marginTop: 12 },
   childDue: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4 },
   inviteBox: {
@@ -263,6 +283,9 @@ const styles = StyleSheet.create({
   inviteCode: { fontSize: 28, fontWeight: '800', color: COLORS.primary, letterSpacing: 4 },
   shareBtn: {
     marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: COLORS.primaryLight,
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -271,9 +294,17 @@ const styles = StyleSheet.create({
   shareBtnText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
   membersBox: { width: '100%', marginTop: 16 },
   membersLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 8 },
-  memberItem: { fontSize: 14, color: COLORS.text, paddingVertical: 4 },
+  memberItem: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  memberItemText: { fontSize: 14, color: COLORS.text },
   emptyState: { alignItems: 'center', paddingTop: 40 },
-  emptyEmoji: { fontSize: 64 },
+  emptyIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   emptyTitle: { fontSize: 22, fontWeight: '700', color: COLORS.text, marginTop: 16, textAlign: 'center' },
   emptySubtitle: { fontSize: 14, color: COLORS.textSecondary, marginTop: 8, textAlign: 'center', lineHeight: 20 },
   formCard: {
@@ -310,24 +341,34 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   dateInputText: { fontSize: 15, color: COLORS.text },
+  confirmDateBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  confirmDateBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
   button: {
-    height: 50,
     backgroundColor: COLORS.primary,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
   },
   buttonDisabled: { opacity: 0.7 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   outlineBtn: {
-    height: 50,
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
   },
   outlineBtnText: { color: COLORS.primary, fontSize: 16, fontWeight: '600' },
   backLink: { marginTop: 16, alignItems: 'center' },

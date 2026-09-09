@@ -1,6 +1,6 @@
 import React from 'react'
-import { Text } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { Baby, Plus, History } from 'lucide-react-native'
 import HomeScreen from '../screens/HomeScreen'
 import RecordScreen from '../screens/RecordScreen'
 import HistoryScreen from '../screens/HistoryScreen'
@@ -32,7 +32,7 @@ export default function AppNavigator() {
         options={{
           title: 'Meu Filho',
           tabBarLabel: 'Bebê',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👶</Text>,
+          tabBarIcon: ({ color, size }) => <Baby color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -41,7 +41,7 @@ export default function AppNavigator() {
         options={{
           title: 'Registrar',
           tabBarLabel: 'Registrar',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>➕</Text>,
+          tabBarIcon: ({ color, size }) => <Plus color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -50,7 +50,7 @@ export default function AppNavigator() {
         options={{
           title: 'Histórico',
           tabBarLabel: 'Histórico',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>,
+          tabBarIcon: ({ color, size }) => <History color={color} size={size} />,
         }}
       />
     </Tab.Navigator>

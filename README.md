@@ -32,6 +32,7 @@ Aplicativo React Native para o MeuFilho, permitindo que dois responsáveis (pai,
 | Formulários | React Hook Form v7 + Zod v4 |
 | HTTP | Axios (interceptor de refresh token automático) |
 | Armazenamento seguro | expo-secure-store |
+| Ícones | lucide-react-native + react-native-svg |
 | Seletor de data | @react-native-community/datetimepicker |
 | Runtime | Node.js 20+ |
 
@@ -107,6 +108,34 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 ---
 
 ## Changelog
+
+### v1.1.0 — Redesign visual + melhorias de UX
+> Setembro 2026
+
+**Ícones**
+- Todos os emojis substituídos por ícones vetoriais `lucide-react-native` em todas as telas (Baby, Leaf, User, Scale, Ruler, Heart, Calendar, Trash2, ClipboardList, Share2)
+- Instaladas dependências `lucide-react-native` e `react-native-svg`
+
+**Assets**
+- Novos assets criados e configurados: ícone light, dark e tinted (iOS 18+), splash screen, favicon e ícones Android (foreground, background, monochrome)
+- `app.json` atualizado com `ios.icon` como objeto `{ light, dark, tinted }`, splash screen e cor de fundo Android corrigida para `#F7F4EF`
+- `app.json` sincronizado com versão `1.1.0`
+
+**Tela Registrar**
+- Redesenhada com seletor de tipo (Peso / Altura / BPM) — um campo por vez em vez de três campos sempre visíveis
+- Teclado numérico fecha automaticamente via tecla Done (`returnKeyType="done"`)
+- Seletor de data em estilo calendário (`display="inline"` iOS, `display="default"` Android) mostrando dia da semana
+- Botão "Confirmar data" para fechar o calendário inline no iOS
+
+**Correções**
+- `dueDate` agora envia ISO datetime completo — corrige erro de validação `body/dueDate Invalid ISO datetime` da API
+- Histórico: cabeçalho de data corrigido para lidar com ISO datetime completo vindo da API (era `Invalid Date`)
+- Histórico: nome longo do responsável truncado com `ellipsis` — impedia o valor de aparecer no card
+- `DateTimePicker`: `onChange` substituído por `onValueChange` + `onDismiss` (API depreciada)
+- Login: adicionados `textContentType` e `autoComplete` para suporte a autofill iOS
+- Botões: padding via `paddingVertical`/`paddingHorizontal` em vez de `height` fixo
+
+---
 
 ### v1.0.8 — Fix: instalação do @expo/vector-icons
 > Setembro 2026
