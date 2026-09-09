@@ -11,7 +11,17 @@
       "Bash(git push *)",
       "Bash(pnpm *)",
       "Bash(Test-Path *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git rm *)",
+      "PowerShell(Get-NetFirewallRule *)",
+      "PowerShell(pnpm list *)",
+      "PowerShell(& \"D:\\\\joao_\\\\Documents\\\\Padialli\\\\APPs\\\\MeuFilho\\\\node_modules\\\\.pnpm\\\\node_modules\\\\.bin\\\\ngrok.CMD\" authtoken cr_3J0Ne0Fx10G8jLHQzVIvB4rwHNn 2>&1)",
+      "Bash(Get-ChildItem -Path \"D:\\\\joao_\\\\Documents\\\\Padialli\\\\APPs\\\\MeuFilho\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "PowerShell(Set-NetFirewallProfile *)",
+      "PowerShell(Get-Process *)",
+      "Bash(npx expo *)"
     ]
   }
 }

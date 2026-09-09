@@ -43,3 +43,7 @@ package-lock.json
 # generated native folders
 /ios
 /android
+
+# Photoshop
+*.psd
+*.psb
