@@ -1,5 +1,6 @@
 export type Role = 'PAI' | 'MAE'
 export type MeasurementType = 'WEIGHT' | 'HEIGHT' | 'BPM'
+export type Sex = 'MALE' | 'FEMALE' | 'UNKNOWN'
 
 export interface User {
   id: string
@@ -12,6 +13,7 @@ export interface Child {
   id: string
   name: string | null
   dueDate: string | null
+  sex: Sex
   inviteCode: string
   createdAt: string
   members: { id: string; name: string; role: Role }[]

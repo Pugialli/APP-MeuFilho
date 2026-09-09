@@ -12,11 +12,17 @@ import {
   Platform,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { Baby, Leaf, User, Share2 } from 'lucide-react-native'
-import { useChildren, useCreateChild, useJoinChild } from '../hooks/useChild'
+import { Baby, Leaf, User, Share2, Pencil, Check, X, Plus } from 'lucide-react-native'
+import { useChildren, useCreateChild, useUpdateChild, useJoinChild } from '../hooks/useChild'
 import { useAuth } from '../context/AuthContext'
 import { COLORS } from '../navigation/theme'
-import type { Child } from '../types'
+import type { Child, Sex } from '../types'
+
+const SEX_OPTIONS: { value: Sex; label: string }[] = [
+  { value: 'MALE', label: 'Menino' },
+  { value: 'FEMALE', label: 'Menina' },
+  { value: 'UNKNOWN', label: 'Não definido' },
+]
 
 function formatDate(iso: string | null) {
   if (!iso) return '–'
@@ -24,19 +30,149 @@ function formatDate(iso: string | null) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
+function SexSelector({ value, onChange }: { value: Sex; onChange: (s: Sex) => void }) {
+  return (
+    <View style={styles.sexRow}>
+      {SEX_OPTIONS.map((opt) => {
+        const active = value === opt.value
+        return (
+          <TouchableOpacity
+            key={opt.value}
+            style={[styles.sexChip, active && styles.sexChipActive]}
+            onPress={() => onChange(opt.value)}
+          >
+            <Text style={[styles.sexChipText, active && styles.sexChipTextActive]}>
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        )
+      })}
+    </View>
+  )
+}
+
 function ChildCard({ child }: { child: Child }) {
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState(child.name ?? '')
+  const [editSex, setEditSex] = useState<Sex>(child.sex ?? 'UNKNOWN')
+  const [editDueDate, setEditDueDate] = useState<Date | null>(
+    child.dueDate ? new Date(child.dueDate.split('T')[0]) : null
+  )
+  const [showDatePicker, setShowDatePicker] = useState(false)
+
+  const updateChild = useUpdateChild(child.id)
+
   const shareInvite = async () => {
     await Share.share({
       message: `Use o código ${child.inviteCode} no app Meu Filho para acompanhar nosso bebê!`,
     })
   }
 
+  const handleSave = async () => {
+    try {
+      await updateChild.mutateAsync({
+        name: editName.trim() || undefined,
+        dueDate: editDueDate ? editDueDate.toISOString() : undefined,
+        sex: editSex,
+      })
+      setEditing(false)
+    } catch (err: any) {
+      Alert.alert('Erro', err?.response?.data?.message ?? 'Não foi possível salvar')
+    }
+  }
+
+  const handleCancel = () => {
+    setEditName(child.name ?? '')
+    setEditSex(child.sex ?? 'UNKNOWN')
+    setEditDueDate(child.dueDate ? new Date(child.dueDate.split('T')[0]) : null)
+    setShowDatePicker(false)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <View style={styles.childCard}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.formTitle}>Editar bebê</Text>
+          <TouchableOpacity onPress={handleCancel} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <X size={20} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.fieldLabel}>Nome (opcional)</Text>
+        <TextInput
+          style={styles.input}
+          value={editName}
+          onChangeText={setEditName}
+          placeholder="Nome do bebê"
+          placeholderTextColor={COLORS.muted}
+        />
+
+        <Text style={styles.fieldLabel}>Sexo</Text>
+        <SexSelector value={editSex} onChange={setEditSex} />
+
+        <Text style={styles.fieldLabel}>Data prevista de nascimento</Text>
+        <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker((v) => !v)}>
+          <Text style={[styles.dateInputText, !editDueDate && { color: COLORS.muted }]}>
+            {editDueDate ? editDueDate.toLocaleDateString('pt-BR') : 'Selecionar data'}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={editDueDate ?? new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'inline' : 'default'}
+            onValueChange={(_, date) => {
+              if (Platform.OS !== 'ios') setShowDatePicker(false)
+              setEditDueDate(date)
+            }}
+            onDismiss={() => setShowDatePicker(false)}
+          />
+        )}
+        {showDatePicker && Platform.OS === 'ios' && (
+          <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowDatePicker(false)}>
+            <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[styles.button, updateChild.isPending && styles.buttonDisabled]}
+          onPress={handleSave}
+          disabled={updateChild.isPending}
+        >
+          {updateChild.isPending ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <View style={styles.btnInner}>
+              <Check size={16} color="#fff" />
+              <Text style={styles.buttonText}>Salvar</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
   return (
     <View style={styles.childCard}>
+      <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(true)}>
+        <Pencil size={16} color={COLORS.textSecondary} />
+      </TouchableOpacity>
+
       <View style={styles.childIconContainer}>
         <Baby size={40} color={COLORS.primary} />
       </View>
       <Text style={styles.childName}>{child.name ?? 'Nosso bebê'}</Text>
+
+      {child.sex !== 'UNKNOWN' && (
+        <View style={styles.sexBadge}>
+          <Text style={styles.sexBadgeText}>
+            {child.sex === 'MALE' ? 'Menino' : 'Menina'}
+          </Text>
+        </View>
+      )}
+
       {child.dueDate && (
         <Text style={styles.childDue}>Previsão: {formatDate(child.dueDate)}</Text>
       )}
@@ -65,9 +201,168 @@ function ChildCard({ child }: { child: Child }) {
   )
 }
 
+function AddChildSection() {
+  const [mode, setMode] = useState<'closed' | 'choose' | 'create' | 'join'>('closed')
+  const [name, setName] = useState('')
+  const [sex, setSex] = useState<Sex>('UNKNOWN')
+  const [dueDate, setDueDate] = useState<Date | null>(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const [inviteCode, setInviteCode] = useState('')
+
+  const createMutation = useCreateChild()
+  const joinMutation = useJoinChild()
+
+  const reset = () => {
+    setName('')
+    setSex('UNKNOWN')
+    setDueDate(null)
+    setShowPicker(false)
+    setInviteCode('')
+    setMode('closed')
+  }
+
+  const handleCreate = async () => {
+    try {
+      await createMutation.mutateAsync({
+        name: name.trim() || undefined,
+        dueDate: dueDate ? dueDate.toISOString() : undefined,
+        sex,
+      })
+      reset()
+    } catch (err: any) {
+      Alert.alert('Erro', err?.response?.data?.message ?? 'Não foi possível criar')
+    }
+  }
+
+  const handleJoin = async () => {
+    const code = inviteCode.trim().toUpperCase()
+    if (code.length !== 8) { Alert.alert('Código inválido', 'O código deve ter 8 caracteres'); return }
+    try {
+      await joinMutation.mutateAsync(code)
+      reset()
+    } catch (err: any) {
+      Alert.alert('Erro', err?.response?.data?.message ?? 'Código inválido ou expirado')
+    }
+  }
+
+  if (mode === 'closed') {
+    return (
+      <TouchableOpacity style={styles.addChildBtn} onPress={() => setMode('choose')}>
+        <Plus size={16} color={COLORS.primary} />
+        <Text style={styles.addChildBtnText}>Adicionar outro bebê</Text>
+      </TouchableOpacity>
+    )
+  }
+
+  if (mode === 'choose') {
+    return (
+      <View style={styles.formCard}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.formTitle}>Adicionar bebê</Text>
+          <TouchableOpacity onPress={reset} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <X size={20} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={styles.button} onPress={() => setMode('create')}>
+          <Text style={styles.buttonText}>Criar perfil do bebê</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.outlineBtn} onPress={() => setMode('join')}>
+          <Text style={styles.outlineBtnText}>Entrar com código</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
+  if (mode === 'join') {
+    return (
+      <View style={styles.formCard}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.formTitle}>Código de convite</Text>
+          <TouchableOpacity onPress={() => setMode('choose')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <X size={20} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={styles.input}
+          value={inviteCode}
+          onChangeText={(t) => setInviteCode(t.toUpperCase())}
+          placeholder="Ex: XKPQ7MNR"
+          placeholderTextColor={COLORS.muted}
+          autoCapitalize="characters"
+          maxLength={8}
+        />
+        <TouchableOpacity
+          style={[styles.button, joinMutation.isPending && styles.buttonDisabled]}
+          onPress={handleJoin}
+          disabled={joinMutation.isPending}
+        >
+          {joinMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
+        </TouchableOpacity>
+      </View>
+    )
+  }
+
+  return (
+    <View style={styles.formCard}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.formTitle}>Novo bebê</Text>
+        <TouchableOpacity onPress={() => setMode('choose')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <X size={20} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.fieldLabel}>Nome (opcional)</Text>
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder="Nome do bebê"
+        placeholderTextColor={COLORS.muted}
+      />
+
+      <Text style={styles.fieldLabel}>Sexo</Text>
+      <SexSelector value={sex} onChange={setSex} />
+
+      <Text style={styles.fieldLabel}>Data prevista de nascimento (opcional)</Text>
+      <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker((v) => !v)}>
+        <Text style={[styles.dateInputText, !dueDate && { color: COLORS.muted }]}>
+          {dueDate ? dueDate.toLocaleDateString('pt-BR') : 'Selecionar data'}
+        </Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <DateTimePicker
+          value={dueDate ?? new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'inline' : 'default'}
+          onValueChange={(_, date) => {
+            if (Platform.OS !== 'ios') setShowPicker(false)
+            setDueDate(date)
+          }}
+          onDismiss={() => setShowPicker(false)}
+        />
+      )}
+      {showPicker && Platform.OS === 'ios' && (
+        <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowPicker(false)}>
+          <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity
+        style={[styles.button, createMutation.isPending && styles.buttonDisabled]}
+        onPress={handleCreate}
+        disabled={createMutation.isPending}
+      >
+        {createMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Criar</Text>}
+      </TouchableOpacity>
+    </View>
+  )
+}
+
 function EmptyState() {
   const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose')
   const [name, setName] = useState('')
+  const [sex, setSex] = useState<Sex>('UNKNOWN')
   const [dueDate, setDueDate] = useState<Date | null>(null)
   const [showPicker, setShowPicker] = useState(false)
   const [inviteCode, setInviteCode] = useState('')
@@ -80,6 +375,7 @@ function EmptyState() {
       await createMutation.mutateAsync({
         name: name.trim() || undefined,
         dueDate: dueDate ? dueDate.toISOString() : undefined,
+        sex,
       })
     } catch (err: any) {
       Alert.alert('Erro', err?.response?.data?.message ?? 'Não foi possível criar')
@@ -88,10 +384,7 @@ function EmptyState() {
 
   const handleJoin = async () => {
     const code = inviteCode.trim().toUpperCase()
-    if (code.length !== 8) {
-      Alert.alert('Código inválido', 'O código deve ter 8 caracteres')
-      return
-    }
+    if (code.length !== 8) { Alert.alert('Código inválido', 'O código deve ter 8 caracteres'); return }
     try {
       await joinMutation.mutateAsync(code)
     } catch (err: any) {
@@ -135,11 +428,7 @@ function EmptyState() {
           onPress={handleJoin}
           disabled={joinMutation.isPending}
         >
-          {joinMutation.isPending ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Entrar</Text>
-          )}
+          {joinMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={styles.backLink} onPress={() => setMode('choose')}>
           <Text style={styles.backLinkText}>← Voltar</Text>
@@ -160,6 +449,9 @@ function EmptyState() {
         placeholder="Nome do bebê"
         placeholderTextColor={COLORS.muted}
       />
+
+      <Text style={styles.fieldLabel}>Sexo</Text>
+      <SexSelector value={sex} onChange={setSex} />
 
       <Text style={styles.fieldLabel}>Data prevista de nascimento (opcional)</Text>
       <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker((v) => !v)}>
@@ -191,11 +483,7 @@ function EmptyState() {
         onPress={handleCreate}
         disabled={createMutation.isPending}
       >
-        {createMutation.isPending ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Criar</Text>
-        )}
+        {createMutation.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Criar</Text>}
       </TouchableOpacity>
       <TouchableOpacity style={styles.backLink} onPress={() => setMode('choose')}>
         <Text style={styles.backLinkText}>← Voltar</Text>
@@ -227,7 +515,7 @@ export default function HomeScreen() {
     )
   }
 
-  const child = children?.[0]
+  const hasChildren = children && children.length > 0
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
@@ -238,7 +526,16 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {child ? <ChildCard child={child} /> : <EmptyState />}
+      {hasChildren ? (
+        <>
+          {children.map((child) => (
+            <ChildCard key={child.id} child={child} />
+          ))}
+          <AddChildSection />
+        </>
+      ) : (
+        <EmptyState />
+      )}
     </ScrollView>
   )
 }
@@ -255,11 +552,25 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 10,
     elevation: 2,
+  },
+  cardHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  editBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 6,
   },
   childIconContainer: {
     width: 80,
@@ -270,6 +581,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   childName: { fontSize: 24, fontWeight: '700', color: COLORS.text, marginTop: 12 },
+  sexBadge: {
+    marginTop: 6,
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 20,
+  },
+  sexBadgeText: { fontSize: 12, fontWeight: '600', color: COLORS.text },
   childDue: { fontSize: 14, color: COLORS.textSecondary, marginTop: 4 },
   inviteBox: {
     width: '100%',
@@ -307,18 +626,32 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontSize: 22, fontWeight: '700', color: COLORS.text, marginTop: 16, textAlign: 'center' },
   emptySubtitle: { fontSize: 14, color: COLORS.textSecondary, marginTop: 8, textAlign: 'center', lineHeight: 20 },
+  addChildBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    marginTop: 4,
+  },
+  addChildBtnText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
   formCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 20,
     padding: 24,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 10,
     elevation: 2,
   },
-  formTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 20 },
-  fieldLabel: { fontSize: 13, fontWeight: '500', color: COLORS.textSecondary, marginBottom: 6, marginTop: 4 },
+  formTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text },
+  fieldLabel: { fontSize: 13, fontWeight: '500', color: COLORS.textSecondary, marginBottom: 6, marginTop: 12 },
   input: {
     height: 48,
     borderWidth: 1,
@@ -328,8 +661,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.text,
     backgroundColor: COLORS.background,
-    marginBottom: 12,
   },
+  sexRow: { flexDirection: 'row', gap: 8 },
+  sexChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+  },
+  sexChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  sexChipText: { fontSize: 12, fontWeight: '600', color: COLORS.textSecondary },
+  sexChipTextActive: { color: '#fff' },
   dateInput: {
     height: 48,
     borderWidth: 1,
@@ -338,7 +683,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     justifyContent: 'center',
     backgroundColor: COLORS.background,
-    marginBottom: 12,
   },
   dateInputText: { fontSize: 15, color: COLORS.text },
   confirmDateBtn: {
@@ -346,7 +690,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
-    marginBottom: 12,
+    marginTop: 8,
   },
   confirmDateBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
   button: {
@@ -354,11 +698,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 16,
     paddingVertical: 14,
     paddingHorizontal: 32,
   },
   buttonDisabled: { opacity: 0.7 },
+  btnInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   outlineBtn: {
     borderWidth: 1.5,

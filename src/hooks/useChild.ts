@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../services/api'
-import type { Child } from '../types'
+import type { Child, Sex } from '../types'
 
 export function useChildren() {
   return useQuery<Child[]>({
@@ -15,8 +15,19 @@ export function useChildren() {
 export function useCreateChild() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (payload: { name?: string; dueDate?: string }) => {
+    mutationFn: async (payload: { name?: string; dueDate?: string; sex?: Sex }) => {
       const { data } = await api.post('/children', payload)
+      return data.data as Child
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['children'] }),
+  })
+}
+
+export function useUpdateChild(childId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (payload: { name?: string; dueDate?: string; sex?: Sex }) => {
+      const { data } = await api.patch(`/children/${childId}`, payload)
       return data.data as Child
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['children'] }),
