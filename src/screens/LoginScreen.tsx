@@ -46,6 +46,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.inner}>
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Leaf size={40} color={COLORS.primary} />
@@ -137,6 +138,7 @@ export default function LoginScreen() {
             <Text style={styles.linkText}>Não tem conta? <Text style={styles.link}>Criar conta</Text></Text>
           </TouchableOpacity>
         </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -144,7 +146,8 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  container: { flexGrow: 1, justifyContent: 'center', padding: 24, alignItems: 'center' },
+  inner: { width: '100%', maxWidth: 480 },
   header: { alignItems: 'center', marginBottom: 32 },
   logoContainer: {
     width: 80,

@@ -130,6 +130,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.screen}>
+      <View style={styles.inner}>
       <View style={styles.tabs}>
         {TABS.map((tab) => (
           <TouchableOpacity
@@ -166,12 +167,14 @@ export default function HistoryScreen() {
           </View>
         )}
       />
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
+  screen: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center' },
+  inner: { width: '100%', maxWidth: 680, flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: COLORS.background },
   tabs: {
     flexDirection: 'row',

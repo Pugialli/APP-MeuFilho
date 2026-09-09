@@ -96,6 +96,7 @@ export default function RecordScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
+      <View style={styles.inner}>
       <Text style={styles.sectionTitle}>Nova medição</Text>
       <Text style={styles.sectionSub}>Selecione o tipo e informe o valor.</Text>
 
@@ -198,13 +199,15 @@ export default function RecordScreen() {
           <Text style={styles.buttonText}>Salvar medição</Text>
         )}
       </TouchableOpacity>
+      </View>
     </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { flexGrow: 1, padding: 20, paddingBottom: 40, alignItems: 'center' },
+  inner: { width: '100%', maxWidth: 560 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: COLORS.background },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
   sectionSub: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 20, lineHeight: 18 },
