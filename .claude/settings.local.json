@@ -21,7 +21,9 @@
       "Bash(Sort-Object FullName)",
       "PowerShell(Set-NetFirewallProfile *)",
       "PowerShell(Get-Process *)",
-      "Bash(npx expo *)"
+      "Bash(npx expo *)",
+      "Bash(Remove-Item pnpm-lock.yaml)",
+      "PowerShell(Get-ChildItem \"D:\\\\joao_\\\\Documents\\\\Padialli\\\\APPs\\\\MeuFilho\\\\node_modules\\\\.pnpm\" | Where-Object { $_.Name -match \"react-dom\" } | Select-Object Name)"
     ]
   }
 }

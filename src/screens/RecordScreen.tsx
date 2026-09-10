@@ -8,14 +8,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Platform,
   Keyboard,
 } from 'react-native'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import { useForm, Controller } from 'react-hook-form'
+import { DateField } from '../components/DateField'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Scale, Ruler, Heart, Calendar } from 'lucide-react-native'
+import { Scale, Ruler, Heart } from 'lucide-react-native'
 import { useChildren } from '../hooks/useChild'
 import { useAddMeasurement } from '../hooks/useMeasurements'
 import { COLORS } from '../navigation/theme'
@@ -43,10 +42,10 @@ export default function RecordScreen() {
 
   const [selectedType, setSelectedType] = useState<MeasurementType>('WEIGHT')
   const [date, setDate] = useState(new Date())
-  const [showPicker, setShowPicker] = useState(false)
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { value: '' },
   })
 
   const activeType = TYPES.find((t) => t.type === selectedType)!
@@ -68,7 +67,7 @@ export default function RecordScreen() {
         unit: activeType.unit,
       })
       Alert.alert('Sucesso', `${activeType.label} registrado!`)
-      reset()
+      reset({ value: '' })
     } catch (err: any) {
       Alert.alert('Erro', err?.response?.data?.message ?? 'Não foi possível salvar')
     }
@@ -149,44 +148,13 @@ export default function RecordScreen() {
       {/* Date field */}
       <View style={styles.fieldGroup}>
         <Text style={styles.fieldLabel}>Data</Text>
-        <TouchableOpacity
-          style={styles.dateField}
-          onPress={() => {
-            Keyboard.dismiss()
-            setShowPicker((v) => !v)
-          }}
-        >
-          <Text style={styles.dateText}>
-            {date.toLocaleDateString('pt-BR', {
-              weekday: 'long',
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </Text>
-          <Calendar size={18} color={COLORS.muted} />
-        </TouchableOpacity>
-      </View>
-
-      {showPicker && (
-        <DateTimePicker
+        <DateField
           value={date}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
+          onChange={setDate}
           maximumDate={new Date()}
-          onValueChange={(_, selected) => {
-            if (Platform.OS !== 'ios') setShowPicker(false)
-            setDate(selected)
-          }}
-          onDismiss={() => setShowPicker(false)}
-          style={styles.datePicker}
+          format={(d) => d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
         />
-      )}
-      {showPicker && Platform.OS === 'ios' && (
-        <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowPicker(false)}>
-          <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
-        </TouchableOpacity>
-      )}
+      </View>
 
       <TouchableOpacity
         style={[styles.button, addMeasurement.isPending && styles.buttonDisabled]}

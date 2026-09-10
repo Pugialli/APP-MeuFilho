@@ -1,25 +1,25 @@
-import React, { useState } from 'react'
+import { Ionicons } from '@expo/vector-icons'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigation } from '@react-navigation/native'
+import type { StackNavigationProp } from '@react-navigation/stack'
+import { Leaf } from 'lucide-react-native'
+import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { Leaf } from 'lucide-react-native'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useNavigation } from '@react-navigation/native'
-import type { StackNavigationProp } from '@react-navigation/stack'
 import { useAuth } from '../context/AuthContext'
-import { COLORS } from '../navigation/theme'
 import type { AuthStackParamList } from '../navigation/AuthNavigator'
+import { COLORS } from '../navigation/theme'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -52,7 +52,7 @@ export default function LoginScreen() {
             <Leaf size={40} color={COLORS.primary} />
           </View>
           <Text style={styles.title}>Meu Filho</Text>
-          <Text style={styles.subtitle}>Acompanhe cada momento da gestação</Text>
+          <Text style={styles.subtitle}>Acompanhe cada momento do seu filho</Text>
         </View>
 
         <View style={styles.card}>

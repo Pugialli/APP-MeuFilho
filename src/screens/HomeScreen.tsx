@@ -9,11 +9,10 @@ import {
   ScrollView,
   Share,
   Alert,
-  Platform,
   Modal,
 } from 'react-native'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import { Baby, Leaf, User, Share2, Pencil, Check, X, Plus } from 'lucide-react-native'
+import { DateField } from '../components/DateField'
 import { useChildren, useCreateChild, useUpdateChild, useJoinChild } from '../hooks/useChild'
 import { useAuth } from '../context/AuthContext'
 import { COLORS } from '../navigation/theme'
@@ -60,7 +59,6 @@ function ChildCard({ child }: { child: Child }) {
   const [editDueDate, setEditDueDate] = useState<Date | null>(
     child.dueDate ? new Date(child.dueDate.split('T')[0]) : null
   )
-  const [showDatePicker, setShowDatePicker] = useState(false)
 
   const updateChild = useUpdateChild(child.id)
 
@@ -87,13 +85,12 @@ function ChildCard({ child }: { child: Child }) {
     setEditName(child.name ?? '')
     setEditSex(child.sex ?? 'UNKNOWN')
     setEditDueDate(child.dueDate ? new Date(child.dueDate.split('T')[0]) : null)
-    setShowDatePicker(false)
     setEditing(false)
   }
 
   if (editing) {
     return (
-      <View style={styles.childCard}>
+      <View style={[styles.childCard, styles.childCardEdit]}>
         <View style={styles.cardHeader}>
           <Text style={styles.formTitle}>Editar bebê</Text>
           <TouchableOpacity onPress={handleCancel} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -114,29 +111,7 @@ function ChildCard({ child }: { child: Child }) {
         <SexSelector value={editSex} onChange={setEditSex} />
 
         <Text style={styles.fieldLabel}>Data prevista de nascimento</Text>
-        <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker((v) => !v)}>
-          <Text style={[styles.dateInputText, !editDueDate && { color: COLORS.muted }]}>
-            {editDueDate ? editDueDate.toLocaleDateString('pt-BR') : 'Selecionar data'}
-          </Text>
-        </TouchableOpacity>
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={editDueDate ?? new Date()}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-            onValueChange={(_, date) => {
-              if (Platform.OS !== 'ios') setShowDatePicker(false)
-              setEditDueDate(date)
-            }}
-            onDismiss={() => setShowDatePicker(false)}
-          />
-        )}
-        {showDatePicker && Platform.OS === 'ios' && (
-          <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowDatePicker(false)}>
-            <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
-          </TouchableOpacity>
-        )}
+        <DateField value={editDueDate} onChange={setEditDueDate} />
 
         <TouchableOpacity
           style={[styles.button, updateChild.isPending && styles.buttonDisabled]}
@@ -225,7 +200,6 @@ function AddChildSection() {
   const [name, setName] = useState('')
   const [sex, setSex] = useState<Sex>('UNKNOWN')
   const [dueDate, setDueDate] = useState<Date | null>(null)
-  const [showPicker, setShowPicker] = useState(false)
   const [inviteCode, setInviteCode] = useState('')
 
   const createMutation = useCreateChild()
@@ -235,7 +209,6 @@ function AddChildSection() {
     setName('')
     setSex('UNKNOWN')
     setDueDate(null)
-    setShowPicker(false)
     setInviteCode('')
     setMode('closed')
   }
@@ -343,29 +316,7 @@ function AddChildSection() {
       <SexSelector value={sex} onChange={setSex} />
 
       <Text style={styles.fieldLabel}>Data prevista de nascimento (opcional)</Text>
-      <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker((v) => !v)}>
-        <Text style={[styles.dateInputText, !dueDate && { color: COLORS.muted }]}>
-          {dueDate ? dueDate.toLocaleDateString('pt-BR') : 'Selecionar data'}
-        </Text>
-      </TouchableOpacity>
-
-      {showPicker && (
-        <DateTimePicker
-          value={dueDate ?? new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          onValueChange={(_, date) => {
-            if (Platform.OS !== 'ios') setShowPicker(false)
-            setDueDate(date)
-          }}
-          onDismiss={() => setShowPicker(false)}
-        />
-      )}
-      {showPicker && Platform.OS === 'ios' && (
-        <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowPicker(false)}>
-          <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
-        </TouchableOpacity>
-      )}
+      <DateField value={dueDate} onChange={setDueDate} />
 
       <TouchableOpacity
         style={[styles.button, createMutation.isPending && styles.buttonDisabled]}
@@ -383,7 +334,6 @@ function EmptyState() {
   const [name, setName] = useState('')
   const [sex, setSex] = useState<Sex>('UNKNOWN')
   const [dueDate, setDueDate] = useState<Date | null>(null)
-  const [showPicker, setShowPicker] = useState(false)
   const [inviteCode, setInviteCode] = useState('')
 
   const createMutation = useCreateChild()
@@ -473,29 +423,7 @@ function EmptyState() {
       <SexSelector value={sex} onChange={setSex} />
 
       <Text style={styles.fieldLabel}>Data prevista de nascimento (opcional)</Text>
-      <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker((v) => !v)}>
-        <Text style={[styles.dateInputText, !dueDate && { color: COLORS.muted }]}>
-          {dueDate ? dueDate.toLocaleDateString('pt-BR') : 'Selecionar data'}
-        </Text>
-      </TouchableOpacity>
-
-      {showPicker && (
-        <DateTimePicker
-          value={dueDate ?? new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          onValueChange={(_, date) => {
-            if (Platform.OS !== 'ios') setShowPicker(false)
-            setDueDate(date)
-          }}
-          onDismiss={() => setShowPicker(false)}
-        />
-      )}
-      {showPicker && Platform.OS === 'ios' && (
-        <TouchableOpacity style={styles.confirmDateBtn} onPress={() => setShowPicker(false)}>
-          <Text style={styles.confirmDateBtnText}>Confirmar data</Text>
-        </TouchableOpacity>
-      )}
+      <DateField value={dueDate} onChange={setDueDate} />
 
       <TouchableOpacity
         style={[styles.button, createMutation.isPending && styles.buttonDisabled]}
@@ -581,6 +509,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
+  childCardEdit: { alignItems: 'stretch' },
   cardHeader: {
     width: '100%',
     flexDirection: 'row',
@@ -733,24 +662,6 @@ const styles = StyleSheet.create({
   sexChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   sexChipText: { fontSize: 12, fontWeight: '600', color: COLORS.textSecondary },
   sexChipTextActive: { color: '#fff' },
-  dateInput: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-    backgroundColor: COLORS.background,
-  },
-  dateInputText: { fontSize: 15, color: COLORS.text },
-  confirmDateBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  confirmDateBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
   button: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,

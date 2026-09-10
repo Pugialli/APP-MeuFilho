@@ -1,3 +1,4 @@
+import './src/suppressWarnings'
 import { registerRootComponent } from 'expo';
 
 import App from './App';

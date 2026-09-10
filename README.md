@@ -111,6 +111,31 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 
 ## Changelog
 
+### v1.3.0 — Correções de UX web e ajustes visuais
+> Setembro 2026
+
+**Código de convite em modal**
+- Removido do card principal; substituído por botão discreto "Convidar parceiro(a)"
+- Modal centralizado com código em destaque e botão de compartilhar
+
+**Largura máxima responsiva**
+- Auth screens (Login/Signup): conteúdo limitado a 480px e centralizado
+- Telas do app (Bebê, Registrar, Histórico): conteúdo limitado a 560–680px
+
+**Date picker no web**
+- Componente `DateField` criado em `src/components/DateField.tsx`
+- Web: `<input type="date">` nativo sobreposto ao campo estilizado — abre seletor do browser
+- Native: DateTimePicker com display inline (iOS) e dialog (Android) como antes
+
+**Formulário de edição do bebê**
+- Chips de sexo agora se expandem corretamente (modo de edição usava `alignItems: center` incorretamente)
+- `childCardEdit` corrige o alinhamento para `stretch`
+
+**Safe area no Safari (iOS)**
+- `SafeAreaProvider` adicionado em App.tsx — corrige sobreposição da barra do Safari no bottom da tela
+
+---
+
 ### v1.2.0 — Múltiplos filhos, edição de perfil e suporte web
 > Setembro 2026
 
