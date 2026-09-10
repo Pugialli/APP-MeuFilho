@@ -122,17 +122,30 @@ Este projeto segue o padrão **Semantic Versioning (semver)**: `MAJOR.MINOR.PATC
 - Auth screens (Login/Signup): conteúdo limitado a 480px e centralizado
 - Telas do app (Bebê, Registrar, Histórico): conteúdo limitado a 560–680px
 
-**Date picker no web**
+**Date picker multiplataforma**
 - Componente `DateField` criado em `src/components/DateField.tsx`
-- Web: `<input type="date">` nativo sobreposto ao campo estilizado — abre seletor do browser
+- Web: `TouchableOpacity` chama `el.showPicker()` (ou `el.click()` como fallback) via ref — abre o seletor nativo do browser
 - Native: DateTimePicker com display inline (iOS) e dialog (Android) como antes
+- Usado em HomeScreen (criar/editar bebê) e RecordScreen (data da medição)
 
 **Formulário de edição do bebê**
-- Chips de sexo agora se expandem corretamente (modo de edição usava `alignItems: center` incorretamente)
-- `childCardEdit` corrige o alinhamento para `stretch`
+- Chips de sexo agora se expandem corretamente (`childCardEdit: { alignItems: stretch }`)
+- Modo de edição usava `alignItems: center` do card pai, que comprimia os chips
 
-**Safe area no Safari (iOS)**
-- `SafeAreaProvider` adicionado em App.tsx — corrige sobreposição da barra do Safari no bottom da tela
+**Safe area no Safari (iOS web)**
+- `SafeAreaProvider` adicionado em App.tsx — corrige sobreposição da barra do browser
+
+**Correções de infraestrutura web**
+- `metro.config.js` criado com `unstable_enablePackageExports: true` e `resolveRequest` manual para `@hookform/resolvers/*` (Metro não resolvia subpath exports sem condição `browser`)
+- `react-dom@19.2.3` fixado como dependência direta para evitar conflito com `react@19.2.3` (react-native-web puxava 19.3.0)
+- `pnpm.overrides` adicionado como camada extra de garantia
+
+**Correções de formulários**
+- RecordScreen: `defaultValues: { value: '' }` adicionado ao `useForm` — impede `TextInput` de alternar entre controlled/uncontrolled ao fazer reset após submit
+
+**Console limpo no web**
+- `src/suppressWarnings.ts` criado sem imports e referenciado como primeiro import em `index.ts`
+- Suprime warnings de migração do React Native Web (`shadow*` → `boxShadow`, `pointerEvents` prop → style) que não têm correção viável na fonte (shadow vem dos estilos nativos; pointerEvents vem do React Navigation)
 
 ---
 
